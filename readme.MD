@@ -1,6 +1,16 @@
+
 # gameboy-server
 
-an nes emulator  that player can play use wechat
+使用微信小程序玩nes 红白机游戏
 
-能用微信进行游戏的nes模拟器服务器端
+## How to use
+
+```
+$ cd gameboy-server
+$ yarn install
+$ yarn start
+```
+
+
+
 

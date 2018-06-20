@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GameBoy</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="content">
+        <h1 id="message">Waiting for Player 2</h1>
+        <p id="games-list">
+          <select id="current-game" onchange="newGame()">
+            <option value="" disabled="disabled" selected="selected">Please select a game</option>
+          </select>
+        </p>
+        <p id="keys">Arrow keys = joypad, X = a, Z = b, Enter = start, Ctrl = select</p>
+        <div id="emulator"></div>
+      </div>
+  <script src="js/lib/jquery-1.4.2.min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/lib/dynamicaudio-min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/source/nes.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/source/utils.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/source/cpu.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/source/keyboard.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/source/mappers.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/source/papu.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/source/ppu.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/source/rom.js" type="text/javascript" charset="utf-8"></script>
+  <script src="js/source/ui.js" type="text/javascript" charset="utf-8"></script>
+  <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/main.js"></script>
+</body>
+</html>
