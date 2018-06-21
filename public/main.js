@@ -10,6 +10,11 @@ $(function () {
 socket.on('play',function(data){
   
 })
+//扫描二维码
+socket.on('scan',function(data){
+  $('#image1').html('<span>玩家已连接</span>');
+  newGame();
+})
  //模拟器
   var screen = $("<canvas width='256' height='240'>");
   var context = screen[0].getContext('2d');
@@ -27,7 +32,7 @@ socket.on('play',function(data){
       imageData.data[i] = 0xFF;
     }
   }
-  newGame();
+  
   function createNes() {
     frame = 0;
     nes = new JSNES({});
@@ -128,33 +133,23 @@ socket.on('play',function(data){
       nes.stop();
       nes = null;
     }
-    clearScreen();
-    window.player = 0;
-    $("#message").text("Waiting for Player 2");
+    clearScreen();   
   }
-  
-  socket.on('message',function (msg) {
-    var parts = msg.data.split(" ");
-    var cmd = parts[0];
-    var data = parts[1];
-  
-    if (cmd === "join") {
-      startPlaying(data);
-    }
-  
-    if (cmd === "part") {
-      stopPlaying();
-    }
-  
-    if (cmd === "keyup" || cmd === "keydown") {
-      triggerKey(cmd, parseInt(data, 10));
-    }
-  
-    if (cmd === "data") {
-      drawData(data);
-    }
+  //游戏
+  socket.on('play',function (data) {
+    console.log(data);
+    var cmd = data.type;
+    var code = data.keyCode;  
+    triggerKey(cmd, parseInt(code, 10));
   });
-  
+  //离开
+  socket.on('left',function(data){
+    stopPlaying();
+    $.get('http://127.0.0.1:3000/qrcode',{id:1},function(res){
+      $('#image1').html('<image src="'+ res.url+'">')
+      socket.emit('game start',res.room);//发送room
+  })
+  })
   var keyMap = {
     88: 103,
     90: 105,
@@ -165,20 +160,14 @@ socket.on('play',function(data){
     37: 100,
     39: 102
   };
-  
-  $(document).bind("keydown", function(evt) {
-    var code = evt.keyCode;
-    if (window.player == 1) { nes.keyboard.keyDown(evt); }
-    if (window.player == 2 && keyMap[code]) { evt.preventDefault(); sendKey("keydown", keyMap[code]); }
-  });
-  
-  $(document).bind("keyup", function(evt) {
-    var code = evt.keyCode;
-    if (window.player == 1) { nes.keyboard.keyUp(evt); }
-    if (window.player == 2 && keyMap[code]) { evt.preventDefault(); sendKey("keyup", keyMap[code]); }
-  });
-  
   clearScreen();
-  loadGames();
+  $(document).bind("keydown", function(evt) {
+  var code = evt.keyCode;
+  nes.keyboard.keyDown(evt)
   
-  });
+});
+$(document).bind("keyup", function(evt) {
+  nes.keyboard.keyUp(evt)
+  
+});
+});
