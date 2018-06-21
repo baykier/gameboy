@@ -1,6 +1,16 @@
 $(function () {
 
   var socket = io();
+  //获取二维码
+  $.get('http://127.0.0.1:3000/qrcode',{id:1},function(res){
+      $('#image1').append('<image src="'+ res.url+'">')
+      socket.emit('game start',res.room);//发送room
+  })
+// 接受按键
+socket.on('play',function(data){
+  
+})
+ //模拟器
   var screen = $("<canvas width='256' height='240'>");
   var context = screen[0].getContext('2d');
   var imageData = context.getImageData(0, 0, 256, 240);
@@ -17,7 +27,7 @@ $(function () {
       imageData.data[i] = 0xFF;
     }
   }
-  
+  newGame();
   function createNes() {
     frame = 0;
     nes = new JSNES({});
@@ -107,13 +117,9 @@ $(function () {
   }
   
   function newGame() {
-    var rom = document.getElementById("current-game").value;
-   
-    if(window.player == 1 && rom != "") {
-      clearScreen();
-      createNes();
-      loadROM("/games?name=" + rom);
-    }
+    clearScreen();
+    createNes();
+    loadROM('/roms/SuperMario3.nes');
   }
   window.newGame = newGame;
   
