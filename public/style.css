@@ -57,3 +57,13 @@ canvas {
 #games-list {
   padding-bottom: 15px;
 }
+#code { 
+  margin: 0px auto;
+  width: 500px;
+  text-align: center;
+}
+.playcode {
+  float: left;
+  margin: 0 20px;
+  text-align: center;
+}

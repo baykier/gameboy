@@ -16,7 +16,7 @@ server.listen(port, () => {
   console.log('Server listening at port %d', port);
 });
 
-// Routing
+// 路由何session设置
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookie('gameboy'));
 app.use(session({
@@ -29,12 +29,13 @@ app.use(session({
     secure: false, 
     maxAge: null
   }
- }));
+}));
+ 
 //获取openid
 app.get('/code', function (req, res) {
   //查询openid
   var code = req.param('code');
-  console.log(code);
+  console.log('微信小程序login' + code);
   request({
     url: 'https://api.weixin.qq.com/sns/jscode2session',
     qs: {
@@ -54,9 +55,8 @@ app.get('/code', function (req, res) {
 app.get('/qrcode', function (req, res) {
   var room = req.sessionID;
   var id = req.param('id'); 
-  console.log('获取二维码')
-  console.log(room); 
-  qrcode.toDataURL(room, function(err, url) {    
+  console.log('获取' + room + '玩家' + id +'的二维码')
+  qrcode.toDataURL(room + ' ' + id, function(err, url) {    
       res.send({'url':url,'room':room})
     }
   )    
@@ -65,24 +65,51 @@ app.get('/qrcode', function (req, res) {
 
 // 游戏
 var numUsers = 0;
+var rooms = [];//房间数
+
 io.on('connection', (socket) => {
-addedUser = false;
+  
   // 新用户扫码
-  socket.on('user join', (data) => {
-    var room = data.result;
-    console.log('微信用户扫描')
-    console.log(data);
-    console.log('微信用户' + data.openid + '加入房间' + room)
-    socket.openid = data.openid;
-    socket.room = room;
-    socket.join(room);
-    socket.to(room).emit('scan', data);
+  socket.on('user join', (data,fn) => {
+    numUsers++;
+    var msg = data.result.split(' ');
+    var room = msg[0];
+    var id = msg[1];
+    //判断房间号是否有效
+    if (typeof rooms[room] == 'undefined')
+    {
+      console.log('room[' + room + ']二维码已过期');
+      fn('error');//错误
+    } else {
+      console.log('微信用户' + data.openid + '作为玩家' + id + '加入房间' + room)
+      socket.openid = data.openid;
+      socket.room = room;
+      socket.join(room);
+      socket.to(room).emit('scan', {
+        room: room,
+        openid: data.openid,
+        id: id
+      });
+      fn('success');//成功
+    }
   });
-  //游戏页面
-  socket.on('game start',(data) => {
+  //游戏初始化
+  socket.on('game init',(data) => {
     console.log('显示游戏主页')
     console.log(data);
+    rooms[data.room] = data.room;
+    socket.room = data.room;
+    socket.player1 = false;
+    socket.player2 = false;
     socket.join(data)
+    //5s后不连接自动断开
+    // setTimeout(function () {
+    //   if (!socket.player1) {
+    //       console.log('超时未连接，自动关闭');
+    //       delete rooms[data.room];
+    //       socket.disconnect(true);
+    //   }
+    // },5000)
   });
 
   // 游戏按键

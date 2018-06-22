@@ -1,18 +1,24 @@
 $(function () {
 
-  var socket = io();
-  //获取二维码
-  $.get('http://127.0.0.1:3000/qrcode',{id:1},function(res){
-      $('#image1').append('<image src="'+ res.url+'">')
-      socket.emit('game start',res.room);//发送room
-  })
-// 接受按键
-socket.on('play',function(data){
-  
-})
+  var socket = io({
+    autoConnect: false
+  });
+  //获取二维码  
+  function getCode() {
+    socket.open();
+    $('.image').each(function (e) {
+      var id = $(this).attr('data-id');     
+      $.get('http://127.0.0.1:3000/qrcode',{id:id},function(res){
+        $('.image,.player' + id).html('<image src="'+ res.url+'">')
+        socket.emit('game init', { room: res.room, id: id });//发送room和玩家号
+      })
+    })
+  }
+getCode();
 //扫描二维码
-socket.on('scan',function(data){
-  $('#image1').html('<span>玩家已连接</span>');
+  socket.on('scan', function (data) {
+    var id = data.id;
+  $('.image,.player' + id).html('<span>玩家已连接</span>');
   newGame();
 })
  //模拟器
@@ -150,24 +156,23 @@ socket.on('scan',function(data){
       socket.emit('game start',res.room);//发送room
   })
   })
-  var keyMap = {
-    88: 103,
-    90: 105,
-    17: 99,
-    13: 97,
-    38: 104,
-    40: 98,
-    37: 100,
-    39: 102
-  };
-  clearScreen();
+  //断开连接
+  socket.on('disconnect', () => {
+    $('.fresh').show();
+    $('.fresh').bind('click', function () {
+      getCode();
+      $(this).hide();
+    })
+    console.log('点击刷新');
+  });
+  //按键操作
   $(document).bind("keydown", function(evt) {
-  var code = evt.keyCode;
-  nes.keyboard.keyDown(evt)
+    var code = evt.keyCode;
+    nes.keyboard.keyDown(evt);
+  });
+  $(document).bind("keyup", function(evt) {
+  nes.keyboard.keyUp(evt);  
+  });
   
-});
-$(document).bind("keyup", function(evt) {
-  nes.keyboard.keyUp(evt)
-  
-});
+  clearScreen();
 });

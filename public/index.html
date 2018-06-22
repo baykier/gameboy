@@ -8,11 +8,18 @@
 <body>
     <div id="content">
         <h1>大鱼游戏</h1>
-        <div id="player1">player1
-          <div id="image1"></div>
+        <div id="code">
+            <div id="player1" class="playcode" >player1
+                <div class="image player1" data-id="1"></div>
+                <button class="fresh" style="display: none">点击刷新二维码</button>
+              </div>              
+              <div id="player2" class="playcode" >player2
+                  <div class="image player2" data-id="2"></div>                
+                </div>              
         </div>
         <div id="emulator"></div>
-      </div>
+    </div>
+        
   <script src="js/lib/jquery-1.4.2.min.js" type="text/javascript" charset="utf-8"></script>
   <script src="js/lib/dynamicaudio-min.js" type="text/javascript" charset="utf-8"></script>
   <script src="js/source/nes.js" type="text/javascript" charset="utf-8"></script>
