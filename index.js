@@ -101,26 +101,42 @@ io.on('connection', (socket) => {
     console.log(data);
     rooms[room] = socket.id;
     
-    socket.player1 = false;
-    socket.player2 = false;
+    socket.player1 = null; //玩家一 openid
+    socket.player2 = null; //玩家二 openid
+    socket.master = null; //主控玩家 openid
     socket.room = room;
+
     socket.to(room).emit('init', '游戏页面刷新');    
     socket.join(room);
     //20s后不连接自动断开
     setTimeout(function () {
-      if (!socket.player1) {
+      if (!socket.master) {
           console.log('超时未连接，自动关闭');
           delete rooms[data.room];
           socket.disconnect(true);
       }
     },20000)
   });
+  //玩家连接
+  socket.on('player join', (data) => {
+    console.log('玩家' + data.openid + '已连接' + data.room + '玩家' + data.id);
+    if (data.id == 1)
+    {
+      socket.player1 = data.openid;
+    } else if (data.id == 2)
+    {
+      socket.player2 = data.openid;
+    }
+    //主控玩家
+    if (!socket.master) {
+      socket.master = data.openid;
+    }    
+  })
 
   // 游戏按键
   socket.on('user control', (data) => {
     console.log('游戏按键')
     console.log(data)
-    console.log(socket.room);
     socket.to(socket.room).emit('play',data);
   }); 
   // 断开链接

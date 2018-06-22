@@ -18,10 +18,10 @@ $(function () {
   getCode();
   //扫描二维码
   socket.on('scan', (data) => {
-    var id = data.id;
-    console.log(data);
+    var id = data.id;    
     $('.image.player' + id).html('<span>玩家已连接</span>');  
     //游戏已经开始不再重新开始游戏
+    socket.emit('player join',data)
     if (gameStart)
     {
       return;
@@ -115,14 +115,6 @@ $(function () {
     var code = data.keyCode;  
     triggerKey(cmd, parseInt(code, 10));
   });
-  //离开
-  socket.on('left',function(data){
-    stopPlaying();
-    $.get('http://127.0.0.1:3000/qrcode',{id:1},function(res){
-      $('#image1').html('<image src="'+ res.url+'">')
-      socket.emit('game start',res.room);//发送room
-  })
-  })
   //断开连接
   socket.on('disconnect', () => {
     $('.fresh').show();
