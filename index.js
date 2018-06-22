@@ -10,7 +10,6 @@ var request = require('request');
 var qrcode = require('qrcode');
 var session = require('express-session');
 var cookie = require('cookie-parser');
-var openid = [];
 
 server.listen(port, () => {
   console.log('Server listening at port %d', port);
@@ -31,7 +30,7 @@ app.use(session({
   }
 }));
  
-//获取openid
+//获取openid并返回微信端
 app.get('/code', function (req, res) {
   //查询openid
   var code = req.param('code');
@@ -45,13 +44,11 @@ app.get('/code', function (req, res) {
       grant_type: 'authorization_code'
     }
   },function(err,resonse,body){
-    var body = JSON.parse(body);    
-    openid[body.openid] = body;
+    var body = JSON.parse(body);
     res.send({ code: 0, msg: 'ok' ,'openid': body.openid});
-  })
-  console.log(openid);
+  })  
 });
-//二维码 扫码后用sessionID代表进入哪个房间
+//获取二维码
 app.get('/qrcode', function (req, res) {
   var room = req.sessionID;
   var id = req.param('id'); 
@@ -66,42 +63,49 @@ app.get('/qrcode', function (req, res) {
 // 游戏
 var numUsers = 0;
 var rooms = [];//房间数
+var users = [];//用户
 
 io.on('connection', (socket) => {
   
   // 新用户扫码
-  socket.on('user join', (data,fn) => {
+  socket.on('user join', (data) => {
     numUsers++;
     var msg = data.result.split(' ');
     var room = msg[0];
     var id = msg[1];
+    socket.join(room);
     //判断房间号是否有效
     if (typeof rooms[room] == 'undefined')
     {
       console.log('room[' + room + ']二维码已过期');
-      fn('error');//错误
-    } else {
+      io.sockets.connected[socket.id].emit('join result', 'error');      
+    } else
+    {
       console.log('微信用户' + data.openid + '作为玩家' + id + '加入房间' + room)
       socket.openid = data.openid;
       socket.room = room;
-      socket.join(room);
+      //通知微信客户端
+      io.sockets.connected[socket.id].emit('join result', 'success');
+      //通知pc画面
       socket.to(room).emit('scan', {
         room: room,
         openid: data.openid,
         id: id
       });
-      fn('success');//成功
     }
   });
   //游戏初始化
-  socket.on('game init',(data) => {
+  socket.on('game init', (data) => {
+    var room = data.room;   
     console.log('显示游戏主页')
     console.log(data);
-    rooms[data.room] = data.room;
-    socket.room = data.room;
+    rooms[room] = socket.id;
+    
     socket.player1 = false;
     socket.player2 = false;
-    socket.join(data)
+    socket.room = room;
+    socket.to(room).emit('init', '游戏页面刷新');    
+    socket.join(room);
     //5s后不连接自动断开
     // setTimeout(function () {
     //   if (!socket.player1) {

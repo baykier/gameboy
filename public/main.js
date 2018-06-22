@@ -3,22 +3,24 @@ $(function () {
   var socket = io({
     autoConnect: false
   });
+  socket.open();
   //获取二维码  
   function getCode() {
     socket.open();
     $('.image').each(function (e) {
       var id = $(this).attr('data-id');     
       $.get('http://127.0.0.1:3000/qrcode',{id:id},function(res){
-        $('.image,.player' + id).html('<image src="'+ res.url+'">')
+        $('.image.player' + id).html('<image src="'+ res.url+'">')
         socket.emit('game init', { room: res.room, id: id });//发送room和玩家号
       })
     })
   }
 getCode();
 //扫描二维码
-  socket.on('scan', function (data) {
+  socket.on('scan', (data) => {
     var id = data.id;
-  $('.image,.player' + id).html('<span>玩家已连接</span>');
+    console.log(data);
+    $('.image.player' + id).html('<span>玩家已连接</span>');  
   newGame();
 })
  //模拟器
@@ -166,13 +168,23 @@ getCode();
     console.log('点击刷新');
   });
   //按键操作
-  $(document).bind("keydown", function(evt) {
-    var code = evt.keyCode;
-    nes.keyboard.keyDown(evt);
+  $(document).bind("keydown", function (evt) { 
+    try {
+      nes.keyboard.keyDown(evt);
+    } catch (e)
+    {
+      console.log(e);
+    }
+    
   });
-  $(document).bind("keyup", function(evt) {
-  nes.keyboard.keyUp(evt);  
-  });
-  
+  $(document).bind("keyup", function (evt) {
+    try {
+      nes.keyboard.keyUp(evt);  
+    } catch (e)
+    {
+      console.log(e);
+    }
+   
+  });  
   clearScreen();
 });
