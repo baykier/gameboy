@@ -9,7 +9,7 @@ $(function () {
     socket.open();
     $('.image').each(function (e) {
       var id = $(this).attr('data-id');     
-      $.get('http://127.0.0.1:3000/qrcode',{id:id},function(res){
+      $.get('/qrcode',{id:id},function(res){
         $('.image.player' + id).html('<image src="'+ res.url+'">')
         socket.emit('game init', { room: res.room, id: id });//发送room和玩家号
       })
