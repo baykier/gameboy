@@ -3,7 +3,7 @@ $(function () {
   var socket = io({
     autoConnect: false
   });
-  socket.open();
+  var gameStart = false;
   //获取二维码  
   function getCode() {
     socket.open();
@@ -15,13 +15,19 @@ $(function () {
       })
     })
   }
-getCode();
-//扫描二维码
+  getCode();
+  //扫描二维码
   socket.on('scan', (data) => {
     var id = data.id;
     console.log(data);
     $('.image.player' + id).html('<span>玩家已连接</span>');  
-  newGame();
+    //游戏已经开始不再重新开始游戏
+    if (gameStart)
+    {
+      return;
+    }
+    gameStart = true;
+    newGame();
 })
  //模拟器
   var screen = $("<canvas width='256' height='240'>");
@@ -61,23 +67,11 @@ getCode();
       context.putImageData(imageData, 0, 0);
       // send at 30 fps
       if (frame === 2) {
-        sendScreen();
         frame = 0;
       }
     };
   }
-  
-  function loadGames() {
-    $.getJSON('/gamelist', function(data){
-      var html = '';
-      var len = data.games.length;
-      for (var i = 0; i< len; i++) {
-        html += '<option value="' + data.games[i] + '">' + data.games[i].replace(".nes","") + '</option>';
-      }
-      $('#current-game').append(html);
-    });
-  }
-  
+    
   function loadROM(url) {
     $.ajax({
       url: escape(url),
@@ -98,35 +92,6 @@ getCode();
     e.which = keyCode;
     e.keyCode = keyCode;
     $(document).trigger(e);
-  }
-  
-  function sendKey(type, keyCode) {
-    socket.send(type + " " + keyCode);
-  }
-  
-  function sendScreen(buffer) {
-    var image = screen[0].toDataURL();
-    socket.send("data " + image);
-  }
-  
-  function drawData(data) {
-    var img = new Image();
-    img.src = data;
-    context.drawImage(img, 0, 0);
-  }
-  
-  function startPlaying(data) {
-    window.player = parseInt(data, 10);
-    
-    if (window.player == 1) {
-      newGame();
-      $("#games-list").show();
-      $("#message").text("You are Player 1");
-    }
-    if (window.player == 2) {
-      $("#games-list").hide();
-      $("#message").text("You are Player 2");
-    }
   }
   
   function newGame() {

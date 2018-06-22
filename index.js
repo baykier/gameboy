@@ -106,14 +106,14 @@ io.on('connection', (socket) => {
     socket.room = room;
     socket.to(room).emit('init', '游戏页面刷新');    
     socket.join(room);
-    //5s后不连接自动断开
-    // setTimeout(function () {
-    //   if (!socket.player1) {
-    //       console.log('超时未连接，自动关闭');
-    //       delete rooms[data.room];
-    //       socket.disconnect(true);
-    //   }
-    // },5000)
+    //20s后不连接自动断开
+    setTimeout(function () {
+      if (!socket.player1) {
+          console.log('超时未连接，自动关闭');
+          delete rooms[data.room];
+          socket.disconnect(true);
+      }
+    },20000)
   });
 
   // 游戏按键
@@ -126,6 +126,6 @@ io.on('connection', (socket) => {
   // 断开链接
   socket.on('disconnect', () => {
       console.log(socket.room + 'left');
-      socket.to(socket.room).emit('left','222' );
+      socket.to(socket.room).emit('left','left' );
   });
 });
